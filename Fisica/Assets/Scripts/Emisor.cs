@@ -3,9 +3,9 @@ using UnityEngine;
 
 public class Emisor : MonoBehaviour
 {
-    [SerializeField] public List<Particualas> particualas = new List<Particualas>();
-    public float accumTime = 0f;
-    public float genTime = 0.001f;
+    [SerializeField] public List<Particulas> particualas = new List<Particulas>();
+    private float accumTime = 1f;
+    private float genTime = 1f;
 
     void Update()
     {
@@ -16,8 +16,11 @@ public class Emisor : MonoBehaviour
         {
             // Generate a new particle
             accumTime -= genTime;
-            Particualas newParticle = Instantiate(particualas[0], transform.position, Quaternion.identity);
-            newParticle.vel = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), 0);
+            Particulas newParticle = Instantiate(particualas[0], transform.position, Quaternion.identity);
         }
+        // add force
+
+        // Update existing particles
+        // destroy particles that are out of bounds or have expired with TTL = 0;
     }
 }
