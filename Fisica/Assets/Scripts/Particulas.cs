@@ -2,13 +2,15 @@ using UnityEngine;
 
 public class Particulas : MonoBehaviour
 {
-    public Transform pos;
+    public Transform initialPos;
+    public Vector3 pos;
     public Vector3 vel = new Vector3 (1, 1, 2);
     public float lifeTime = 3;
 
     void Start()
     {
-        pos (Random.Range(-2f, 2f), Random.Range(-2f, 2f), 0f);
+        pos = new Vector3(Random.Range(-2f, 2f), Random.Range(-2f, 2f), 0f);
+        initialPos.position = pos;
     }
 
     void Update()
