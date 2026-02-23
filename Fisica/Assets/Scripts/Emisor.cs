@@ -1,26 +1,34 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
-public class Emisor : MonoBehaviour
+public class EmisorParticulas : MonoBehaviour
 {
-    [SerializeField] public List<Particulas> particualas = new List<Particulas>();
-    private float accumTime = 1f;
-    private float genTime = 1f;
+    [Header("Configuración del Emisor")]
+    public float ratioEmision = 10f; // Particulas por segundo
+    public float vidaInicial = 2f;
+    public Vector3 velocidadInicial = Vector3.up;
+
+    // Referencia al sistema que gestiona las particulas
+    public SistemaParticulas sistema;
+
+    private float acumuladorTiempo = 0f;
 
     void Update()
     {
-        float dt = Time.time;
-        accumTime += dt;
+        // Emitir partículas si es necesario
+        acumuladorTiempo += Time.deltaTime;
+        float intervalo = 1f / ratioEmision;
 
-        while (accumTime >= genTime)
+        if (acumuladorTiempo >= intervalo)
         {
-            // Generate a new particle
-            accumTime -= genTime;
-            Particulas newParticle = Instantiate(particualas[0], transform.position, Quaternion.identity);
+            Emitir();
+            acumuladorTiempo -= intervalo;
         }
-        // add force
+    }
 
-        // Update existing particles
-        // destroy particles that are out of bounds or have expired with TTL = 0;
+    void Emitir()
+    {
+        // Solicitar al sistema una particula disponible
+        sistema.SolicitarParticula(transform.position, velocidadInicial, vidaInicial);
     }
 }

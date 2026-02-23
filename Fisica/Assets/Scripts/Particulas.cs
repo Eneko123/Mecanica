@@ -2,31 +2,43 @@ using UnityEngine;
 
 public class Particulas : MonoBehaviour
 {
-    public Transform initialPos;
-    public Vector3 pos;
-    public Vector3 vel = new Vector3 (1, 1, 2);
-    public float lifeTime = 3;
+    public Vector3 posicion;
+    public Vector3 velocidad;
+    public Vector3 aceleracion;
+    public float tiempoDeVida;
+    public float tiempoDeVidaMax;
+    public bool activa;
 
-    void Start()
+    public void Inicializar(Vector3 pos, Vector3 vel, float vida)
     {
-        pos = new Vector3(Random.Range(-2f, 2f), Random.Range(-2f, 2f), 0f);
-        initialPos.position = pos;
+        posicion = pos;
+        velocidad = vel;
+        aceleracion = Vector3.zero; // O gravedad
+        tiempoDeVida = vida;
+        tiempoDeVidaMax = vida;
+        activa = true;
     }
 
-    void Update()
+    public void Update()
     {
         Resolve(Time.deltaTime);
     }
 
-    public void Resolve(float dt)
+    public virtual void Resolve(float dt)
     {
-        Vector3 p = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-        p += vel;
+        if (!activa) return;
 
-        lifeTime -= dt;
-        if (lifeTime <= 0)
+        // Integración de movimiento (Euler simple)
+        velocidad += aceleracion * dt;
+        posicion += velocidad * dt;
+
+        // Reducir vida útil
+        tiempoDeVida -= dt;
+
+        if (tiempoDeVida <= 0)
         {
-            Destroy(gameObject);
+            activa = false; // Marcar para eliminar
         }
     }
 }
+
