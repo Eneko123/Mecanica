@@ -15,7 +15,7 @@ public class Particulas : MonoBehaviour
         );
 
         vel = new Vector3(
-            Random.Range(-1f, 0f),
+            Random.Range(-10f, 0f),
             Random.Range(-1f, 1f),
             0f
         );
