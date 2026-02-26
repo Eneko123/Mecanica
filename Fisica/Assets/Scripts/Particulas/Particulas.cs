@@ -10,13 +10,13 @@ public class Particulas : MonoBehaviour
     {
         transform.position = new Vector3(
             0f,
-            Random.Range(-2f, 2f),
-            Random.Range(-2f, 2f)
+            Random.Range(-1f, 1f),
+            Random.Range(-1f, 1f)
         );
 
         vel = new Vector3(
-            Random.Range(-5f, 5f),
-            Random.Range(-5f, 5f),
+            Random.Range(-3f, 3f),
+            Random.Range(-3f, 3f),
             5f
         );
 
@@ -47,8 +47,8 @@ public class Particulas : MonoBehaviour
     {
         lifeTime = initialLifeTime;
         transform.position = new Vector3(
-            Random.Range(-2f, 2f),
-            Random.Range(-2f, 2f),
+            Random.Range(-1f, 1f),
+            Random.Range(-1f, 1f),
             0f
         );
     }
