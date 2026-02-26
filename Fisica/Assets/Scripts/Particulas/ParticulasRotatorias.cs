@@ -1,15 +1,12 @@
 using UnityEngine;
 
-public class Particulas : MonoBehaviour
+public class ParticulasRotatorias : Particulas
 {
-    protected Vector3 vel;
-    protected float lifeTime = 1f;
-    protected float initialLifeTime;
-
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         transform.position = new Vector3(
-            -5f,
+            5f,
             Random.Range(-1f, 1f),
             Random.Range(-1f, 1f)
         );
@@ -23,31 +20,16 @@ public class Particulas : MonoBehaviour
         initialLifeTime = lifeTime;
     }
 
+    // Update is called once per frame
     void Update()
     {
-        Resolve(Time.deltaTime);
+        
     }
-
-    public void Resolve(float dt)
-    {
-        // Mueve la particula
-        transform.position += vel * dt;
-
-        // Reduce vida
-        lifeTime -= dt;
-
-        // Destruye cuando muere
-        if (lifeTime <= 0)
-        {
-            gameObject.SetActive(false);
-        }
-    }
-
-    public void ResetParticle()
+    public new void ResetParticle()
     {
         lifeTime = initialLifeTime;
         transform.position = new Vector3(
-            -5f,
+            5f,
             Random.Range(-1f, 1f),
             Random.Range(-1f, 1f)
         );

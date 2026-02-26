@@ -6,7 +6,7 @@ public class Emisor : MonoBehaviour
     public GameObject particulaPrefab;
     public float spawnRate = 0.1f;
     private float timer;
-    public List<Particulas> particulas = new List<Particulas>();
+    public List<Particulas> particulas;
     public int maxParticulas = 10;
 
     void Update()
