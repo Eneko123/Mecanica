@@ -3,7 +3,7 @@ using UnityEngine;
 public class Particulas : MonoBehaviour
 {
     private Vector3 vel;
-    private float lifeTime = 3f;
+    private float lifeTime = 1f;
     private float initialLifeTime;
 
     void Start()
@@ -15,9 +15,9 @@ public class Particulas : MonoBehaviour
         );
 
         vel = new Vector3(
-            Random.Range(-10f, 0f),
-            Random.Range(-1f, 1f),
-            0f
+            Random.Range(-5f, 5f),
+            Random.Range(-5f, 5f),
+            5f
         );
 
         initialLifeTime = lifeTime;
