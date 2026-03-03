@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Atraido : MonoBehaviour
@@ -57,7 +58,10 @@ public class Atraido : MonoBehaviour
     {
         for (int i = 0; i < atractores.Count; i++)
         {
-            atraido.transform.LookAt(atractores[i].transform);
+            atraido.transform.rotation = Quaternion.Slerp(
+            atraido.transform.rotation,
+            Quaternion.FromToRotation(atractores[i].transform.position, atraido.transform.position),
+            Time.deltaTime);
         }
     }
 }
