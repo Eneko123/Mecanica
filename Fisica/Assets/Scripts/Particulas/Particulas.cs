@@ -3,23 +3,12 @@ using UnityEngine;
 public class Particulas : MonoBehaviour
 {
     protected Vector3 vel;
-    protected float lifeTime = 1f;
+    protected Vector3 acel;
+    protected float lifeTime;
     protected float initialLifeTime;
 
-    void Start()
+    protected virtual void Start()
     {
-        transform.position = new Vector3(
-            -5f,
-            Random.Range(-1f, 1f),
-            Random.Range(-1f, 1f)
-        );
-
-        vel = new Vector3(
-            Random.Range(-3f, 3f),
-            Random.Range(-3f, 3f),
-            5f
-        );
-
         initialLifeTime = lifeTime;
     }
 
@@ -28,28 +17,33 @@ public class Particulas : MonoBehaviour
         Resolve(Time.deltaTime);
     }
 
-    public void Resolve(float dt)
+    public virtual void Resolve(float dt)
     {
-        // Mueve la particula
+        // Integración: velocidad += aceleración * dt, posición += velocidad * dt
+        vel += acel * dt;
         transform.position += vel * dt;
 
-        // Reduce vida
         lifeTime -= dt;
 
-        // Destruye cuando muere
-        if (lifeTime <= 0)
-        {
+        if (lifeTime <= 0f)
             gameObject.SetActive(false);
-        }
     }
 
-    public void ResetParticle()
+    // Inicializa la partícula con los datos que le pasa el Emisor
+    public virtual void Init(Vector3 position, Vector3 velocidad, Vector3 aceleracion, float vida)
     {
-        lifeTime = initialLifeTime;
-        transform.position = new Vector3(
-            -5f,
-            Random.Range(-1f, 1f),
-            Random.Range(-1f, 1f)
-        );
+        transform.position = position;
+        vel = velocidad;
+        acel = aceleracion;
+        lifeTime = vida;
+        initialLifeTime = vida;
+    }
+
+    public virtual void ResetParticle(Vector3 position, Vector3 velocidad, Vector3 aceleracion, float vida)
+    {
+        transform.position = position;
+        vel = velocidad;
+        acel = aceleracion;
+        lifeTime = vida;
     }
 }

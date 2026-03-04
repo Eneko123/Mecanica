@@ -3,41 +3,90 @@ using UnityEngine;
 
 public class Emisor : MonoBehaviour
 {
+    [Header("Prefab")]
     public GameObject particulaPrefab;
-    public float spawnRate = 0.1f;
-    private float timer;
-    public List<Particulas> particulas;
-    public int maxParticulas = 10;
 
-    void Update()
+    [Header("Emisión")]
+    public float spawnRate = 0.5f;      // Segundos entre partículas
+    public int maxParticulas = 30;
+
+    [Header("Condiciones iniciales")]
+    public Vector3 aceleracion = new Vector3(0f, -9.8f, 0f); // Gravedad por defecto
+    public float vida = 3f;
+
+    public Vector3 velInicial = new Vector3(0f, 5f, 0f);
+    public float velVariacion = 2f;
+
+    [Header("Área de emisión")]
+    public float areaEmision = 2f;
+
+    // Pool de partículas
+    protected List<Particulas> pool = new List<Particulas>();
+    private float timer;
+
+    protected virtual void Update()
     {
         timer += Time.deltaTime;
         if (timer >= spawnRate)
         {
-            // Pooling pocho
-            // Si no hay suficientes particulas, crea una nueva
-            if (particulas.Count <= maxParticulas)
+            timer = 0f;
+            EmitirParticula();
+        }
+    }
+
+    protected virtual void EmitirParticula()
+    {
+        // Busca una partícula inactiva en el pool
+        Particulas p = BuscarInactiva();
+
+        if (p == null)
+        {
+            // Pool no lleno: crea una nueva
+            if (pool.Count < maxParticulas)
             {
-                GameObject p = Instantiate(particulaPrefab, transform.position, Quaternion.identity);
-                p.SetActive(true);
-                particulas.Add(p.GetComponent<Particulas>());
-                timer = 0;
+                GameObject go = Instantiate(particulaPrefab, PosicionEmision(), Quaternion.identity);
+                p = go.GetComponent<Particulas>();
+                pool.Add(p);
             }
-            // Si ya hay suficientes particulas, reutiliza una que no esté activa
             else
             {
-                // Busca una particula inactiva
-                for (int i = 0; i < particulas.Count; i++)
-                {
-                    if (!particulas[i].gameObject.activeInHierarchy)
-                    {
-                        particulas[i].ResetParticle();
-                        particulas[i].gameObject.SetActive(true);
-                        timer = 0;
-                        break;
-                    }
-                }
+                return; // Pool lleno y todas activas, no emitir
             }
         }
+
+        p.gameObject.SetActive(true);
+        p.Init(PosicionEmision(), VelocidadAleatoria(), aceleracion, vida);
+    }
+
+    // Devuelve una partícula inactiva del pool, o null si no hay
+    private Particulas BuscarInactiva()
+    {
+        for (int i = 0; i < pool.Count; i++)
+        {
+            if (!pool[i].gameObject.activeInHierarchy)
+            {
+                return pool[i];
+            }
+        }
+        return null;
+    }
+
+    protected Vector3 PosicionEmision()
+    {
+        if (areaEmision <= 0f)
+            return transform.position;
+
+        // Área circular alrededor del emisor
+        Vector2 offset = Random.insideUnitCircle * areaEmision;
+        return transform.position + new Vector3(offset.x, offset.y, 0f);
+    }
+
+    protected Vector3 VelocidadAleatoria()
+    {
+        return velInicial + new Vector3(
+            Random.Range(-velVariacion, velVariacion),
+            Random.Range(-velVariacion, velVariacion),
+            Random.Range(-velVariacion, velVariacion)
+        );
     }
 }

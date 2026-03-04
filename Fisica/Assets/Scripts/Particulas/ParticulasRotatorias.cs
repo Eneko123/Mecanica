@@ -2,36 +2,44 @@ using UnityEngine;
 
 public class ParticulasRotatorias : Particulas
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    // Ángulos de rotación (Roll = Z, Pitch = X, Yaw = Y)
+    private Vector3 rotacion;       // Roll, Pitch, Yaw en grados
+    private Vector3 velAngular;     // Velocidad angular (grados/s)
+    private Vector3 acelAngular;    // Aceleración angular (grados/s²)
+
+    private float masa = 1f;
+
+    // Inercia: I = 2 * masa / 5
+    private float Inercia => 2f * masa / 5f;
+
+    public void InitRotacion(Vector3 position, Vector3 velocidad, Vector3 aceleracion, float vida,
+                              float m,
+                              Vector3 velAng, Vector3 acelAng)
     {
-        transform.position = new Vector3(
-            5f,
-            Random.Range(-1f, 1f),
-            Random.Range(-1f, 1f)
-        );
-
-        vel = new Vector3(
-            Random.Range(-3f, 3f),
-            Random.Range(-3f, 3f),
-            5f
-        );
-
-        initialLifeTime = lifeTime;
+        masa = m;
+        velAngular = velAng;
+        acelAngular = acelAng;
+        rotacion = Vector3.zero;
+        base.Init(position, velocidad, aceleracion, vida);
     }
 
-    // Update is called once per frame
-    void Update()
+    public override void Resolve(float dt)
     {
-        
+        // Actualiza posición (hereda de Particulas)
+        base.Resolve(dt);
+
+        // Actualiza rotación considerando inercia: alpha_efectiva = torque / I
+        // Aquí tratamos acelAngular como torque angular
+        Vector3 alphaEfectiva = acelAngular / Inercia;
+        velAngular += alphaEfectiva * dt;
+        rotacion += velAngular * dt;
+
+        transform.rotation = Quaternion.Euler(rotacion.x, rotacion.y, rotacion.z);
     }
-    public new void ResetParticle()
+
+    public override void ResetParticle(Vector3 position, Vector3 velocidad, Vector3 aceleracion, float vida)
     {
-        lifeTime = initialLifeTime;
-        transform.position = new Vector3(
-            5f,
-            Random.Range(-1f, 1f),
-            Random.Range(-1f, 1f)
-        );
+        base.ResetParticle(position, velocidad, aceleracion, vida);
+        rotacion = Vector3.zero;
     }
 }
