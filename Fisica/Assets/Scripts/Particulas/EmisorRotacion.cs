@@ -3,10 +3,10 @@ using UnityEngine;
 public class EmisorRotacion : Emisor
 {
     [Header("Rotación inicial")]
-    public Vector3 velAngularInicial = new Vector3(90f, 90f, 90f);  // grados/s
+    public Vector3 velAngularInicial = new Vector3(90f, 90f, 90f); 
     public float velAngularVariacion = 45f;
 
-    public Vector3 acelAngularInicial = new Vector3(0f, 0f, 0f);    // grados/s²
+    public Vector3 acelAngularInicial = new Vector3(0f, 0f, 0f);    
 
     [Header("Física rotación")]
     public float masa = 1f;
