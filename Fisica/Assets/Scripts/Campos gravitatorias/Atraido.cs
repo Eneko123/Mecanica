@@ -1,67 +1,81 @@
-using NUnit.Framework;
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class Atraido : MonoBehaviour
 {
-    public List<GameObject> atractores;
+    public List<Atractor> atractores;
+    private Rigidbody rb;
 
-    public GameObject atraido;
-    public Rigidbody rbAtraido;
+    public float velocidadGiro = 5f;
 
-    public float[] distancias;
+    // Cache de datos calculados cada FixedUpdate
+    private float[] distancias;
+    private float[] fuerzas;
 
-    public float[] fuerzas;
-
-    private float radio = 50;
-
-
-    void Start()
+    private void Start()
     {
-        for (int i = 0; i < atractores.Count; i++)
-        {
-            atractores[i].GetComponent<Rigidbody>();
-        }
+        rb = GetComponent<Rigidbody>();
+        rb.useGravity = false; // Usamos nuestra propia gravedad
+
         distancias = new float[atractores.Count];
-        fuerzas = new float[atractores.Count];
+        fuerzas    = new float[atractores.Count];
     }
 
-    void Update()
+    private void FixedUpdate()
     {
         Atraccion();
+    }
+
+    private void Update()
+    {
         Mirar();
     }
 
-    void Atraccion()
+    private void Atraccion()
     {
         for (int i = 0; i < atractores.Count; i++)
         {
-            distancias[i] = Vector3.Distance(atractores[i].GetComponent<Rigidbody>().position, rbAtraido.position);
+            Vector3 direccion = atractores[i].transform.position - transform.position;
+            distancias[i] = direccion.magnitude;
 
-            fuerzas[i] = 9.8f * ((atractores[i].GetComponent<Rigidbody>().mass * rbAtraido.mass) / (distancias[i] * distancias[i]));
-            if (distancias[i] > radio)
+            if (distancias[i] > atractores[i].radio || distancias[i] == 0f)
             {
-                fuerzas[i] = 0;
+                fuerzas[i] = 0f;
+                continue;
             }
 
-            atraido.GetComponent<Rigidbody>().AddForce(new Vector3(
-                atractores[i].transform.position.x - atraido.transform.position.x,
-                atractores[i].transform.position.y - atraido.transform.position.y,
-                atractores[i].transform.position.z - atraido.transform.position.z) *
-                fuerzas[i],
-                ForceMode.Force);
+            // F = G * (M * m) / d²
+            fuerzas[i] = 9.8f * (atractores[i].masa * rb.mass) / (distancias[i] * distancias[i]);
+
+            rb.AddForce(direccion.normalized * fuerzas[i], ForceMode.Force);
         }
     }
 
-    void Mirar()
+    private void Mirar()
     {
-        for (int i = 0; i < atractores.Count; i++)
+        Atractor planetaDominante = ObtenerPlanetaDominante();
+        if (planetaDominante == null) return;
+
+        Vector3 dirHaciaArriba = (transform.position - planetaDominante.transform.position).normalized;
+
+        Quaternion targetRot = Quaternion.FromToRotation(transform.up, dirHaciaArriba) * transform.rotation;
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * velocidadGiro);
+    }
+
+    private Atractor ObtenerPlanetaDominante()
+    {
+        Atractor dominante = null;
+        float maxFuerza = 0f;
+
+        for (int i = 0; i < fuerzas.Length; i++)
         {
-            atraido.transform.rotation = Quaternion.Slerp(
-            atraido.transform.rotation,
-            Quaternion.FromToRotation(atractores[i].transform.position, atraido.transform.position),
-            Time.deltaTime);
+            if (fuerzas[i] > maxFuerza)
+            {
+                maxFuerza = fuerzas[i];
+                dominante = atractores[i];
+            }
         }
+
+        return dominante;
     }
 }
