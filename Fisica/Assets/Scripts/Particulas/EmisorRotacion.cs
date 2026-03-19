@@ -1,3 +1,4 @@
+using System.Drawing;
 using UnityEngine;
 
 public class EmisorRotacion : Emisor
@@ -11,35 +12,60 @@ public class EmisorRotacion : Emisor
     [Header("Física rotación")]
     public float masa = 1f;
 
+    void AniadirParticulaRotatoria(int size)
+    {
+        for (int i = 0; i < size; i++)
+        {
+            GameObject p = Instantiate(particulaPrefab, PosicionEmision(), Quaternion.identity);
+            p.SetActive(false);
+            pool.Add(p.GetComponent<ParticulasRotatorias>());
+        }
+    }
+
     protected override void EmitirParticula()
     {
-        // Busca una partícula rotatoria inactiva en el pool
-        ParticulasRotatorias p = BuscarInactivaRotatoria();
-
-        if (p == null)
+        for (int i = 0; i < pool.Count; i++)
         {
-            if (pool.Count < maxParticulas)
+            if (!pool[i].gameObject.activeInHierarchy)
             {
-                GameObject go = Instantiate(particulaPrefab, PosicionEmision(), Quaternion.identity);
-                p = go.GetComponent<ParticulasRotatorias>();
-                pool.Add(p);
-            }
-            else
-            {
-                return;
+                pool[i].gameObject.SetActive(true);
+                // Cambiar el tipo a ParticulasRotatorias antes de llamar a InitRotacion
+                if (pool[i] is ParticulasRotatorias pr)
+                {
+                    pr.InitRotacion(
+                        PosicionEmision(),
+                        VelocidadAleatoria(),
+                        aceleracion,
+                        vida,
+                        masa,
+                        VelAngularAleatoria(),
+                        acelAngularInicial
+                    );
+                }
+                return; // Una partícula emitida, salimos
             }
         }
 
-        p.gameObject.SetActive(true);
-        p.InitRotacion(
-            PosicionEmision(),
-            VelocidadAleatoria(),
-            aceleracion,
-            vida,
-            masa,
-            VelAngularAleatoria(),
-            acelAngularInicial
-        );
+        // Si todas están activas y no hemos llegado al máximo, creamos una más
+        if (pool.Count < maxParticulas)
+        {
+            AniadirParticula(1);
+            pool[pool.Count - 1].gameObject.SetActive(true);
+            pool[pool.Count - 1].gameObject.SetActive(true);
+            // Cambiar el tipo a ParticulasRotatorias antes de llamar a InitRotacion
+            if (pool[pool.Count - 1] is ParticulasRotatorias pr)
+            {
+                pr.InitRotacion(
+                    PosicionEmision(),
+                    VelocidadAleatoria(),
+                    aceleracion,
+                    vida,
+                    masa,
+                    VelAngularAleatoria(),
+                    acelAngularInicial
+                );
+            }
+        }
     }
 
     private ParticulasRotatorias BuscarInactivaRotatoria()

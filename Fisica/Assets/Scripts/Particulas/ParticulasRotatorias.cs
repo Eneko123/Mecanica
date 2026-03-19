@@ -12,9 +12,7 @@ public class ParticulasRotatorias : Particulas
     // Inercia: I = 2 * masa / 5
     private float Inercia => 2f * masa / 5f;
 
-    public void InitRotacion(Vector3 position, Vector3 velocidad, Vector3 aceleracion, float vida,
-                              float m,
-                              Vector3 velAng, Vector3 acelAng)
+    public void InitRotacion(Vector3 position, Vector3 velocidad, Vector3 aceleracion, float vida, float m, Vector3 velAng, Vector3 acelAng)
     {
         masa = m;
         velAngular = velAng;
@@ -28,7 +26,7 @@ public class ParticulasRotatorias : Particulas
         // Actualiza posición (hereda de Particulas)
         base.Resolve(dt);
 
-        // Actualiza rotación considerando inercia: alpha_efectiva = torque / I
+        // alpha_efectiva = torque / I
         // Aquí tratamos acelAngular como torque angular
         Vector3 alphaEfectiva = acelAngular / Inercia;
         velAngular += alphaEfectiva * dt;

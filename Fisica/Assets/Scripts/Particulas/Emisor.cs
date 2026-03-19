@@ -24,6 +24,11 @@ public class Emisor : MonoBehaviour
     protected List<Particulas> pool = new List<Particulas>();
     private float timer;
 
+    private void Start()
+    {
+        AniadirParticula(maxParticulas);
+    }
+
     protected virtual void Update()
     {
         timer += Time.deltaTime;
@@ -34,51 +39,42 @@ public class Emisor : MonoBehaviour
         }
     }
 
-    protected virtual void EmitirParticula()
+    protected virtual void AniadirParticula(int size)
     {
-        // Busca una partícula inactiva en el pool
-        Particulas p = BuscarInactiva();
-
-        if (p == null)
+        for (int i = 0; i < size; i++)
         {
-            // Pool no lleno: crea una nueva
-            if (pool.Count < maxParticulas)
-            {
-                GameObject go = Instantiate(particulaPrefab, PosicionEmision(), Quaternion.identity);
-                p = go.GetComponent<Particulas>();
-                pool.Add(p);
-            }
-            else
-            {
-                return; // Pool lleno y todas activas, no emitir
-            }
+            GameObject p = Instantiate(particulaPrefab, PosicionEmision(), Quaternion.identity);
+            p.SetActive(false);
+            pool.Add(p.GetComponent<Particulas>());
         }
-
-        p.gameObject.SetActive(true);
-        p.Init(PosicionEmision(), VelocidadAleatoria(), aceleracion, vida);
     }
 
-    // Devuelve una partícula inactiva del pool, o null si no hay
-    private Particulas BuscarInactiva()
+    protected virtual void EmitirParticula()
     {
         for (int i = 0; i < pool.Count; i++)
         {
             if (!pool[i].gameObject.activeInHierarchy)
             {
-                return pool[i];
+                pool[i].gameObject.SetActive(true);
+                pool[i].Init(PosicionEmision(), VelocidadAleatoria(), aceleracion, vida);
+                return; // Una partícula emitida, salimos
             }
         }
-        return null;
+
+        // Si todas están activas y no hemos llegado al máximo, creamos una más
+        if (pool.Count < maxParticulas)
+        {
+            AniadirParticula(1);
+            pool[pool.Count - 1].gameObject.SetActive(true);
+            pool[pool.Count - 1].Init(PosicionEmision(),VelocidadAleatoria(), aceleracion, vida);
+        }
     }
 
     protected Vector3 PosicionEmision()
     {
-        if (areaEmision <= 0f)
-            return transform.position;
-
         // Área circular alrededor del emisor
         Vector2 offset = Random.insideUnitCircle * areaEmision;
-        return transform.position + new Vector3(offset.x, offset.y, 0f);
+        return transform.position + new Vector3(offset.x, 0f, 0f);
     }
 
     protected Vector3 VelocidadAleatoria()
