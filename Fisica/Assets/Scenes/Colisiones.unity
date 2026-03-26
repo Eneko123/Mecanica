@@ -185,7 +185,7 @@ MonoBehaviour:
   colliderHeght: 1
   colliderWidth: 1
   mat: {fileID: 2100000, guid: 16232655d63c2f7499ceb516df15fa83, type: 2}
-  collidingColor: {r: 0.33063418, g: 0.118592024, b: 0.6132076, a: 0}
+  collidingColor: {r: 0.42857122, g: 0, b: 1, a: 0}
   freeColor: {r: 0, g: 0.17926931, b: 1, a: 0}
   point: {fileID: 1929699980}
 --- !u!23 &338520959
