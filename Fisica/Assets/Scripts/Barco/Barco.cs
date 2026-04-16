@@ -32,6 +32,12 @@ public class Barco : MonoBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
+    void Update()
+    {
+        Up();
+        Down();
+    }
+
     void FixedUpdate()
     {
         // flotacion vertical
@@ -87,7 +93,8 @@ public class Barco : MonoBehaviour
         float fuerzaAmortiguacion = -c * velocidadVertical;
         float fuerzaTotal = fuerzaElastica + fuerzaAmortiguacion;
 
-        rb.AddForce(Vector3.up * fuerzaTotal, ForceMode.Force);
+        if (this.transform.position.y < alturaEquilibrio + offsetFlotacion) // Limitar la fuerza para evitar comportamientos extranios
+            rb.AddForce(Vector3.up * fuerzaTotal, ForceMode.Force);
     }
 
     void AplicarRotacionAngular()
@@ -108,7 +115,7 @@ public class Barco : MonoBehaviour
         // Comparar con transform.up del objeto
         Vector3 transformUp = transform.up;
 
-        // Calcular el ángulo de error entre transform.up y normalObjetivo
+        // Calcular el angulo de error entre transform.up y normalObjetivo
         float anguloError = Vector3.Angle(transformUp, normalObjetivo) * Mathf.Deg2Rad;
 
         // Calcular el eje de rotación (producto cruzado)
@@ -167,7 +174,7 @@ public class Barco : MonoBehaviour
         return normal;
     }
 
-    // Visualización en el editor
+    // Visualizacion en el editor
     void OnDrawGizmos()
     {
         if (p1 != null && p2 != null && p3 != null)
@@ -177,6 +184,22 @@ public class Barco : MonoBehaviour
             Gizmos.DrawRay(p1.transform.position, Vector3.down * rayCastDistance);
             Gizmos.DrawRay(p2.transform.position, Vector3.down * rayCastDistance);
             Gizmos.DrawRay(p3.transform.position, Vector3.down * rayCastDistance);
+        }
+    }
+
+    // Funciones para testear el comportamiento del barco
+    void Up()
+    {
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            transform.position += Vector3.up * 2f; // Elevar el barco al presionar la flecha hacia arriba
+        }
+    }
+    void Down()
+    {
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            transform.position += Vector3.down * 2f; // Bajar el barco al presionar la flecha hacia abajo
         }
     }
 }
