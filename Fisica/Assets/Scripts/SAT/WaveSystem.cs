@@ -8,7 +8,7 @@ public class WaveSystem : MonoBehaviour
     [SerializeField] private int gridSizeX = 20;
     [SerializeField] private int gridSizeZ = 20;
     [SerializeField] private float gridSpacing = 0.5f;
-    [SerializeField] private GameObject pointPrefab; // Prefab de cubo para cada punto
+    [SerializeField] private GameObject pointPrefab; // Prefab de cubo
 
     [Header("Wave Configuration")]
     [SerializeField] private KeyCode emitKey = KeyCode.Space;
@@ -18,7 +18,7 @@ public class WaveSystem : MonoBehaviour
 
     [Header("Wave Decay (Extra)")]
     [SerializeField] private bool useDecay = true;
-    [SerializeField] private float maxWaveAge = 5f; // Edad maxima antes de eliminar
+    [SerializeField] private float maxWaveAge = 5f; // Edad maxima
     [SerializeField] private float decayRate = 0.3f; // Velocidad de decrecimiento
 
     [Header("Emit Position")]
@@ -52,12 +52,6 @@ public class WaveSystem : MonoBehaviour
 
         // Actualizar todas las ondas
         UpdateWaves();
-
-        // Eliminar ondas viejas (Extra)
-        if (useDecay)
-        {
-            RemoveOldWaves();
-        }
     }
 
     // Genera la grid de puntos X por Z
@@ -160,7 +154,7 @@ public class WaveSystem : MonoBehaviour
         // Funcion gaussiana centrada en el radio de la onda
         float gaussian = Mathf.Exp(-(diff * diff) / (2f * width * width));
 
-        // Aplicar decrecimiento de amplitud con el tiempo (Extra)
+        // Aplicar decrecimiento de amplitud con el tiempo
         float currentAmplitude = amplitude;
         if (useDecay)
         {
@@ -172,15 +166,7 @@ public class WaveSystem : MonoBehaviour
         return currentAmplitude * gaussian;
     }
 
-    // Elimina ondas que han superado la edad maxima (Extra)
-    void RemoveOldWaves()
-    {
-        float currentTime = Time.time;
-        activeWaves.RemoveAll(wave => (currentTime - wave.startTime) > maxWaveAge);
-    }
-
-    // Obtiene la altura del agua en una posicion XZ especifica
-    // Usado por el sistema de flotacion
+    // Obtiene la altura del agua en una posicion XZ especifica usado por el sistema de flotacion
     public float GetWaterHeightAt(Vector2 position)
     {
         float currentTime = Time.time;
@@ -200,51 +186,5 @@ public class WaveSystem : MonoBehaviour
         }
 
         return totalHeight;
-    }
-
-
-    // Dibuja gizmos para visualizar la grid y las ondas activas
-    void OnDrawGizmos()
-    {
-        if (!Application.isPlaying) return;
-
-        // Dibujar ondas activas
-        Gizmos.color = Color.cyan;
-        float currentTime = Time.time;
-
-        foreach (Wave wave in activeWaves)
-        {
-            float age = currentTime - wave.startTime;
-            float radius = wave.speed * age;
-
-            Vector3 center = new Vector3(wave.position.x, 0, wave.position.y);
-            DrawCircle(center, radius, 32);
-        }
-
-        // Dibujar punto de emision
-        if (emitPoint != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(emitPoint.position, 0.3f);
-        }
-    }
-
-    void DrawCircle(Vector3 center, float radius, int segments)
-    {
-        float angleStep = 360f / segments;
-        Vector3 prevPoint = center + new Vector3(radius, 0, 0);
-
-        for (int i = 1; i <= segments; i++)
-        {
-            float angle = i * angleStep * Mathf.Deg2Rad;
-            Vector3 newPoint = center + new Vector3(
-                Mathf.Cos(angle) * radius,
-                0,
-                Mathf.Sin(angle) * radius
-            );
-
-            Gizmos.DrawLine(prevPoint, newPoint);
-            prevPoint = newPoint;
-        }
     }
 }
