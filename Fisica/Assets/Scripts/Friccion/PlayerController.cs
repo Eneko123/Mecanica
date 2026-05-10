@@ -1,34 +1,41 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(PlayerInput))]
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    //private PlayerInput playerInput;
-    [Space(1)]
-    //Sirve para ver la dirección en la que se mueve
+    [Space(5)]
+    // Sirve para ver la direccion en la que se mueve
     public Vector2 MoveDir = Vector2.zero;
-    //Hace referencia al componente CharacterController del objeto al que se le anadira
-    private CharacterController controller;
-    //Velocidad del jugador para moverse
-    [SerializeField] float speed = 4f;
-    //Sirve para controlar el salto
-    [SerializeField] Vector3 velocity;
-    //Fuerza con la que se quiere que el jugador salte
-    [SerializeField] float jumpForce = 4f;
-    //La gravedad para hacer que el jugador caiga
-    [SerializeField] float gravity = -9.8f;
-    //Sirve para controlar por si el jugador decide dejar de pulsar al completo porque quiere cancelar el salto
-    private float jumpTimeStamp;
-    private float jumpTime = 0f;
 
+    // Hace referencia al componente CharacterController del objeto
+    private CharacterController controller;
+
+    // Velocidad del jugador para moverse
+    [SerializeField] float speed = 4f;
+
+    // Sirve para obtener la direccion de la camara y alinear el movimiento / Raycast
     [SerializeField] CameraPlayer cameraPlayer;
 
-    //Controla el si se puede mover el jugador o no
+    // Capa para que el Raycast solo detecte cajas
+    [SerializeField] LayerMask cajaLayer;
+
+    // Controla el si se puede mover el jugador o no
     private bool _movementInputPressed = false;
 
-    // Singleton para que el enemigo pueda acceder a la posicion del jugador
+    // Guarda la posicion y rotacion inicial para reiniciar
+    private Vector3 startPos;
+    private Quaternion startRot;
+
+    // Variables para empujar cajas
+    private GameObject cajaDetectada;
+    private float chargeTimer = 0f;
+    private bool estaCargando = false;
+    [SerializeField] float pushForce = 12f;
+    [SerializeField] float maxChargeTime = 2f;
+
+    // Singleton para que otros scripts accedan al jugador
     public static PlayerController Instance { get; private set; }
     public Transform playerTransform;
 
@@ -42,79 +49,128 @@ public class PlayerController : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return;
+        }
+
+        controller = GetComponent<CharacterController>();
+        // Guardamos la posicion inicial al arrancar
+        startPos = transform.position;
+        startRot = transform.rotation;
+    }
+
+    private void Update()
+    {
+        // Reiniciar con tecla R (funciona aunque no lo mapees en InputActions)
+        if (Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            ResetPlayer();
+        }
+
+        // Deteccion continua de caja delante del jugador
+        DetectarCajaDelante();
+
+        // Carga de empuje mientras se mantiene clic izquierdo
+        if (Mouse.current.leftButton.isPressed)
+        {
+            estaCargando = true;
+            chargeTimer += Time.deltaTime;
+        }
+        else if (estaCargando)
+        {
+            EmpujarCaja();
+            estaCargando = false;
+            chargeTimer = 0f;
+        }
+
+        // Movimiento bAsico
+        if (_movementInputPressed)
+        {
+            Vector3 move = (transform.forward * MoveDir.y + cameraPlayer.transform.right * MoveDir.x);
+            controller.Move(move.normalized * speed * Time.deltaTime);
         }
     }
 
-    private void Start()
-    {
-        //playerInput.actions["Move"].performed += OnMove;
-        //playerInput.actions["JumpInput"].performed += OnJumpInput;
-        controller = GetComponent<CharacterController>();
-    }
-    //Se llamara al evento en Unity asociado con la accion de moverse
+    // Se llama al evento en Unity asociado con la accion de moverse
     public void OnMove(InputAction.CallbackContext contextMove)
     {
-        //Si ha empezado se le dara permiso para que avance
         if (contextMove.started)
         {
             _movementInputPressed = true;
         }
-        //Cuando termina de moverse deja de moverse
         else if (contextMove.canceled)
         {
             _movementInputPressed = false;
         }
-        //Controla la direccion en la que se mueve
         MoveDir = contextMove.ReadValue<Vector2>();
     }
-    //Se llamara al evento en Unity asociado con la accion de saltar
-    public void OnJumpInput(InputAction.CallbackContext contextJump)
-    {
-        //Si el jugador ha realizado la accion y se encuentra en el suelo
-        if (contextJump.performed && controller.isGrounded)
-        {
-            //Empezara una cuenta para saber si el jugador quiere saltar más o menos
-            jumpTimeStamp = Time.time;
-            //Ayuda a establecer la maxima altura a la que el jugador quiere llegar
-            velocity.y = MathF.Sqrt(jumpForce * -3 * gravity);
-        }
-        else if (contextJump.canceled)
-        {
-            //Si decide no querer saltar al maximo se frenara el salto y bajara el jugador
-            if (Time.time - jumpTimeStamp < jumpTime)
-            {
-                velocity.y = 0;
-            }
-        }
-    }
 
+    // Se llama al evento en Unity asociado con la accion de reiniciar posicion
     public void OnResetPosition(InputAction.CallbackContext contextReset)
     {
-        // Te teletransportas a la posicion de origen
         if (contextReset.performed)
         {
-            controller.enabled = false;
-            Vector3 startPosition = new Vector3(0, 1.58f, 0);
-            transform.position = startPosition;
-            velocity.y = 0;
-            controller.enabled = true;
-
+            ResetPlayer();
         }
     }
-    
-    private void Update()
+
+    // Detecta la caja mas cercana en la direccion de la camara
+    private void DetectarCajaDelante()
     {
-        if (_movementInputPressed)
+        RaycastHit hit;
+        Vector3 origen = transform.position + Vector3.up * 0.8f;
+        // Raycast de 2.5 metros hacia adelante
+        if (Physics.Raycast(origen, cameraPlayer.transform.forward, out hit, 2.5f, cajaLayer))
         {
-            //Se mueve el jugador en la direccion dada a la velocidad dada
-            Vector3 move = (this.transform.forward * MoveDir.y + cameraPlayer.transform.right * MoveDir.x);
-            controller.Move(move.normalized * speed * Time.deltaTime);
+            if (hit.collider.CompareTag("Caja"))
+                cajaDetectada = hit.collider.gameObject;
+            else
+                cajaDetectada = null;
         }
-        //Calcula para que el jugador baje segun la gravedad
-        if (velocity.y > -19.6)
+        else
         {
-            velocity.y += gravity * Time.deltaTime;
+            cajaDetectada = null;
         }
-        controller.Move(velocity * Time.deltaTime);
+    }
+
+    // Aplica impulso a la caja detectada
+    private void EmpujarCaja()
+    {
+        if (cajaDetectada == null) return;
+
+        Rigidbody rbCaja = cajaDetectada.GetComponent<Rigidbody>();
+        if (rbCaja != null)
+        {
+            // Calcula la fuerza segun el tiempo que se mantuvo pulsado
+            float fuerza = pushForce * Mathf.Clamp(chargeTimer / maxChargeTime, 0.2f, 1f);
+            Vector3 direccion = (cajaDetectada.transform.position - transform.position).normalized;
+            rbCaja.AddForce(direccion * fuerza, ForceMode.Impulse);
+        }
+    }
+
+    // Reinicia posicion, rotacion y estados de movimiento
+    public void ResetPlayer()
+    {
+        // CharacterController no usa velocidades fisicas, pero desactivarlo/activarlo evita atascos
+        controller.enabled = false;
+        transform.position = startPos;
+        transform.rotation = startRot;
+        controller.enabled = true;
+
+        // Limpiamos estados para evitar empujes fantasma o inputs bloqueados
+        cajaDetectada = null;
+        chargeTimer = 0f;
+        estaCargando = false;
+        MoveDir = Vector2.zero;
+        _movementInputPressed = false;
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (cameraPlayer != null)
+        {
+            Vector3 origen = transform.position + Vector3.up * 0.5f;
+            Gizmos.color = cajaDetectada != null ? Color.green : Color.red;
+            Gizmos.DrawRay(origen, cameraPlayer.transform.forward * 2.5f);
+        }
     }
 }
