@@ -1,11 +1,11 @@
 using UnityEngine;
 
 // Clase estatica que contiene todas las funciones de deteccion de colisiones
-// Parte 1: PointToAABB, PointToCircle, PointToOBB
-// Parte 2: AABBToAABB, CircleToAABB, CircleToCircle, CircleToOBB
+// PointToAABB, PointToCircle, PointToOBB
+// AABBToAABB, CircleToAABB, CircleToCircle, CircleToOBB
 public static class CollisionFunctions
 {
-    // ------------------- Parte 1: Colisiones Punto-Volumen ----------------------
+    // Colisiones Punto-Volumen 
 
 
     // Detecta colision entre un punto y un AABB
@@ -55,7 +55,7 @@ public static class CollisionFunctions
                Mathf.Abs(projectionY) <= halfHeight;
     }
 
-    // ------------------ Parte 2: Colisiones Volumen-Volumen -----------------------
+    // Colisiones Volumen-Volumen 
 
     // Detecta colision entre dos AABBs
     public static bool AABBToAABB(Vector2 center1, Vector2 size1, Vector2 center2, Vector2 size2)

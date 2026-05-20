@@ -100,20 +100,4 @@ public class CollisionManager : MonoBehaviour
         // El CustomCollider maneja todas las combinaciones
         return collider1.CheckCollisionWith(collider2);
     }
-
-    /// Obtiene el número de colliders registrados
-    //public int GetColliderCount()
-    //{
-    //    return colliders.Count;
-    //}
-
-    /// <summary>
-    /// Limpia la lista de colliders nulos
-    /// </summary>
-    //public void CleanUpNullColliders()
-    //{
-    //    colliders.RemoveAll(c => c == null);
-    //}
-
-    
 }
